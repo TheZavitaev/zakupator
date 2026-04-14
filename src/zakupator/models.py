@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
 
-class Service(str, Enum):
+class Service(StrEnum):
     VKUSVILL = "vkusvill"
     AUCHAN = "auchan"
     METRO = "metro"
@@ -23,7 +23,7 @@ class Address:
     """User's delivery address. lat/lon are what most services actually key on."""
 
     label: str  # human-readable, e.g. "Дом"
-    text: str   # full address string
+    text: str  # full address string
     lat: float
     lon: float
 
@@ -33,9 +33,9 @@ class Offer:
     """A specific product listing at a specific service at a specific moment."""
 
     service: Service
-    product_id: str          # the service's own id
+    product_id: str  # the service's own id
     title: str
-    price: Decimal           # final price the user pays per unit
+    price: Decimal  # final price the user pays per unit
     price_original: Decimal | None = None  # before discount, if known
     unit: str | None = None  # "шт", "кг", "л"
     amount: float | None = None  # 0.930 for a 930ml bottle

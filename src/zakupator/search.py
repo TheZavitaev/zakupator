@@ -10,7 +10,7 @@ The bot talks to this module, not to adapters directly.
 from __future__ import annotations
 
 import asyncio
-from contextlib import AsyncExitStack
+from contextlib import AsyncExitStack, suppress
 from types import TracebackType
 
 from zakupator.adapters.auchan import AuchanAdapter
@@ -49,7 +49,7 @@ class SearchEngine:
         self._cache = response_cache if response_cache is not None else ResponseCache()
         self._stack: AsyncExitStack | None = None
 
-    async def __aenter__(self) -> "SearchEngine":
+    async def __aenter__(self) -> SearchEngine:
         self._stack = AsyncExitStack()
         return self
 
@@ -71,7 +71,7 @@ class SearchEngine:
         address: Address,
         *,
         limit_per_service: int = 3,
-        timeout: float = 12.0,
+        timeout: float = 12.0,  # noqa: ASYNC109 — high-level API knob, not a cancellation token
     ) -> list[SearchResult]:
         """Run `search(query, ...)` on every adapter in parallel.
 
@@ -105,24 +105,18 @@ class SearchEngine:
                 result = task.result()
                 fresh.append(result)
                 if not result.error and result.offers:
-                    self._cache.put(
-                        result.service, query, limit_per_service, result
-                    )
+                    self._cache.put(result.service, query, limit_per_service, result)
 
             # Cancel stragglers and mark them as timeouts.
             for task in pending:
                 task.cancel()
                 service = self._service_from_task(task, to_fetch)
-                fresh.append(
-                    SearchResult(query=query, service=service, error="timeout")
-                )
+                fresh.append(SearchResult(query=query, service=service, error="timeout"))
 
         # Combine cached + fresh, then re-order to match the adapter list.
         all_results = cached + fresh
         order = [a.service for a in self._adapters]
-        all_results.sort(
-            key=lambda r: order.index(r.service) if r.service in order else 999
-        )
+        all_results.sort(key=lambda r: order.index(r.service) if r.service in order else 999)
         return all_results
 
     @staticmethod
@@ -149,7 +143,7 @@ class SearchEngine:
         name = task.get_name() or ""
         prefix = "search/"
         if name.startswith(prefix):
-            value = name[len(prefix):]
+            value = name[len(prefix) :]
             try:
                 return Service(value)
             except ValueError:
@@ -159,7 +153,5 @@ class SearchEngine:
 
     async def close(self) -> None:
         for adapter in self._adapters:
-            try:
+            with suppress(Exception):
                 await adapter.close()
-            except Exception:
-                pass

@@ -14,9 +14,7 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 @pytest.fixture
 def moscow_address() -> Address:
-    return Address(
-        label="Тест", text="Москва", lat=55.7558, lon=37.6173
-    )
+    return Address(label="Тест", text="Москва", lat=55.7558, lon=37.6173)
 
 
 @pytest.fixture
@@ -52,8 +50,6 @@ def mock_client(
         content_bytes = content
 
     def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
-            status, content=content_bytes, headers={"content-type": content_type}
-        )
+        return httpx.Response(status, content=content_bytes, headers={"content-type": content_type})
 
     return httpx.AsyncClient(transport=httpx.MockTransport(handler))

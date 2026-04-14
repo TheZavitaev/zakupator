@@ -34,7 +34,7 @@ from zakupator.matching import MatchedOffer, find_matches
 from zakupator.middleware import DbSessionMiddleware
 from zakupator.models import Address, Offer, SearchResult, Service
 from zakupator.search import SearchEngine
-from zakupator.search_cache import CODE_TO_SERVICE, SERVICE_CODE, SearchCache
+from zakupator.search_cache import SearchCache
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +84,7 @@ def _humanize_error(raw: str) -> str:
         return "не ответил вовремя"
     if raw_lc == "network":
         return "временно недоступен"
-    if raw_lc.startswith("http 5") or raw_lc.startswith("http 429"):
+    if raw_lc.startswith(("http 5", "http 429")):
         return "временно недоступен"
     if raw_lc.startswith("http 4"):
         return "отклонил запрос"
@@ -100,13 +100,12 @@ def _humanize_error(raw: str) -> str:
 
 # ---- /start, /help -------------------------------------------------------
 
+
 @router.message(CommandStart())
 async def on_start(message: Message, session: AsyncSession) -> None:
     if message.from_user is None:
         return
-    await cart_repo.get_or_create_user(
-        session, message.from_user.id, message.from_user.username
-    )
+    await cart_repo.get_or_create_user(session, message.from_user.id, message.from_user.username)
     await message.answer(
         "Привет! Я сравниваю цены в ВкусВилле, Ашане и Metro.\n\n"
         "Просто напиши товар — например <code>молоко простоквашино</code> — "
@@ -137,6 +136,7 @@ async def on_help(message: Message) -> None:
 
 
 # ---- /search -------------------------------------------------------------
+
 
 @router.message(Command("search"))
 async def on_search(
@@ -247,9 +247,7 @@ def _format_search_results(query: str, results: list[SearchResult]) -> str:
     return "\n".join(lines).strip()
 
 
-def _build_add_keyboard(
-    token: str, results: list[SearchResult]
-) -> InlineKeyboardMarkup | None:
+def _build_add_keyboard(token: str, results: list[SearchResult]) -> InlineKeyboardMarkup | None:
     """One row per service, up to 3 price buttons per row.
 
     Callback format: `a:<token>:<flat_idx>` — the flat index into the
@@ -319,6 +317,7 @@ async def on_add_to_cart(
 
 
 # ---- /compare ------------------------------------------------------------
+
 
 @router.message(Command("compare"))
 async def on_compare(
@@ -431,9 +430,7 @@ def _synthesize_matched_results(
             )
         else:
             synthesized.append(
-                SearchResult(
-                    query=result.query, service=result.service, offers=[offer]
-                )
+                SearchResult(query=result.query, service=result.service, offers=[offer])
             )
     return synthesized
 
@@ -451,17 +448,11 @@ def _reduce_to_cheapest(results: list[SearchResult]) -> list[SearchResult]:
             reduced.append(result)
             continue
         cheapest = min(result.offers, key=lambda o: o.price)
-        reduced.append(
-            SearchResult(
-                query=result.query, service=result.service, offers=[cheapest]
-            )
-        )
+        reduced.append(SearchResult(query=result.query, service=result.service, offers=[cheapest]))
     return reduced
 
 
-def _build_compare_keyboard(
-    token: str, results: list[SearchResult]
-) -> InlineKeyboardMarkup | None:
+def _build_compare_keyboard(token: str, results: list[SearchResult]) -> InlineKeyboardMarkup | None:
     """A single compact row — one button per service with an offer.
 
     /compare only ever shows one offer per service so this always fits
@@ -488,9 +479,7 @@ def _build_compare_keyboard(
     return InlineKeyboardMarkup(inline_keyboard=[buttons])
 
 
-def _format_compare(
-    query: str, results: list[SearchResult], *, matched: bool = False
-) -> str:
+def _format_compare(query: str, results: list[SearchResult], *, matched: bool = False) -> str:
     """Render /compare's fallback view: cheapest per service, by price only.
 
     This runs when cross-service matching couldn't find an equivalent
@@ -531,17 +520,13 @@ def _format_compare(
     return "\n".join(lines).strip()
 
 
-def _format_matched_compare(
-    query: str, reference: Offer, matches: list[MatchedOffer]
-) -> str:
+def _format_matched_compare(query: str, reference: Offer, matches: list[MatchedOffer]) -> str:
     """Render /compare when we successfully matched a product across services.
 
     The output is tighter: one line per service with the matched offer,
     a confidence-ish note, and a clear winner.
     """
-    lines: list[str] = [
-        f"⚖️ {hbold(query)} — сопоставимые товары в разных сервисах\n"
-    ]
+    lines: list[str] = [f"⚖️ {hbold(query)} — сопоставимые товары в разных сервисах\n"]
 
     # Group everything (reference + matches) under the matching product.
     entries: list[tuple[Service, Offer]] = [(reference.service, reference)]
@@ -565,8 +550,7 @@ def _format_matched_compare(
     savings = worst[1].price - offer.price
     if savings >= Decimal("1"):
         lines.append(
-            f"<i>Экономия по сравнению с самым дорогим вариантом: "
-            f"{_format_price(savings)} ₽.</i>"
+            f"<i>Экономия по сравнению с самым дорогим вариантом: {_format_price(savings)} ₽.</i>"
         )
     lines.append("<i>Нажми кнопку ниже — товар попадёт в корзину.</i>")
     return "\n".join(lines).strip()
@@ -582,6 +566,7 @@ def _format_compare_line(label: str, offer: Offer) -> str:
 
 
 # ---- /cart ---------------------------------------------------------------
+
 
 @router.message(Command("cart"))
 async def on_cart(message: Message, session: AsyncSession) -> None:
@@ -638,18 +623,10 @@ def _format_cart(
             qty_label = f"×{item.quantity}"
             rows.append(
                 [
-                    InlineKeyboardButton(
-                        text="➖", callback_data=f"q:-:{item.id}"
-                    ),
-                    InlineKeyboardButton(
-                        text=qty_label, callback_data=f"q:?:{item.id}"
-                    ),
-                    InlineKeyboardButton(
-                        text="➕", callback_data=f"q:+:{item.id}"
-                    ),
-                    InlineKeyboardButton(
-                        text="🗑", callback_data=f"r:{item.id}"
-                    ),
+                    InlineKeyboardButton(text="➖", callback_data=f"q:-:{item.id}"),
+                    InlineKeyboardButton(text=qty_label, callback_data=f"q:?:{item.id}"),
+                    InlineKeyboardButton(text="➕", callback_data=f"q:+:{item.id}"),
+                    InlineKeyboardButton(text="🗑", callback_data=f"r:{item.id}"),
                 ]
             )
         lines.append(f"  <b>Итого {label}: {_format_price(group.subtotal)} ₽</b>")
@@ -679,9 +656,7 @@ def _format_cart(
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("q:"))
-async def on_change_quantity(
-    callback: CallbackQuery, session: AsyncSession
-) -> None:
+async def on_change_quantity(callback: CallbackQuery, session: AsyncSession) -> None:
     """Handle ➖ / ➕ / middle label clicks on cart item rows.
 
     The middle label (q:?:id) is informational — we just surface the
@@ -724,9 +699,7 @@ async def on_change_quantity(
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("r:"))
-async def on_remove_item(
-    callback: CallbackQuery, session: AsyncSession
-) -> None:
+async def on_remove_item(callback: CallbackQuery, session: AsyncSession) -> None:
     if not callback.data or callback.from_user is None:
         await callback.answer()
         return
@@ -748,9 +721,7 @@ async def on_remove_item(
     await callback.answer("✓ Удалено", show_alert=False)
 
 
-async def _rerender_cart(
-    callback: CallbackQuery, session: AsyncSession, user_id: int
-) -> None:
+async def _rerender_cart(callback: CallbackQuery, session: AsyncSession, user_id: int) -> None:
     """Shared body that redraws the /cart message in place.
 
     Used by remove, quantity change, and potentially other mutations. If
@@ -778,9 +749,7 @@ async def _rerender_cart(
 
 
 @router.callback_query(lambda c: c.data == "cp:list")
-async def on_copy_cart(
-    callback: CallbackQuery, session: AsyncSession
-) -> None:
+async def on_copy_cart(callback: CallbackQuery, session: AsyncSession) -> None:
     """Send a plain-text dump of the cart in a separate message.
 
     Separate message (not an edit) so the user can easily copy from it —
@@ -835,15 +804,14 @@ async def on_total(message: Message, session: AsyncSession) -> None:
         await message.answer("Корзина пуста.")
         return
 
-    chunks = [
-        f"{_SERVICE_EMOJI[g.service]} {_format_price(g.subtotal)} ₽" for g in groups
-    ]
+    chunks = [f"{_SERVICE_EMOJI[g.service]} {_format_price(g.subtotal)} ₽" for g in groups]
     grand = sum((g.subtotal for g in groups), start=Decimal("0"))
     text = " · ".join(chunks) + f"\n💰 <b>{_format_price(grand)} ₽</b>"
     await message.answer(text, parse_mode=ParseMode.HTML)
 
 
 # ---- /clear --------------------------------------------------------------
+
 
 @router.message(Command("clear"))
 async def on_clear(message: Message, session: AsyncSession) -> None:
@@ -873,9 +841,7 @@ async def on_clear(message: Message, session: AsyncSession) -> None:
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("c:"))
-async def on_clear_confirm(
-    callback: CallbackQuery, session: AsyncSession
-) -> None:
+async def on_clear_confirm(callback: CallbackQuery, session: AsyncSession) -> None:
     if not callback.data or callback.from_user is None:
         await callback.answer()
         return
@@ -927,6 +893,7 @@ async def on_clear_confirm(
 
 # ---- /history ------------------------------------------------------------
 
+
 @router.message(Command("history"))
 async def on_history(message: Message, session: AsyncSession) -> None:
     if message.from_user is None:
@@ -947,9 +914,7 @@ async def on_history(message: Message, session: AsyncSession) -> None:
     rows: list[list[InlineKeyboardButton]] = []
     for q in queries:
         cb = f"h:{q}"[:63]
-        rows.append(
-            [InlineKeyboardButton(text=f"🔎 {_truncate(q, 50)}", callback_data=cb)]
-        )
+        rows.append([InlineKeyboardButton(text=f"🔎 {_truncate(q, 50)}", callback_data=cb)])
     await message.answer(
         f"🕘 {hbold('Последние запросы')}",
         parse_mode=ParseMode.HTML,
@@ -997,6 +962,7 @@ async def on_history_pick(
 
 # ---- helpers -------------------------------------------------------------
 
+
 def _format_offer_line(offer: Offer) -> str:
     title = _truncate(offer.title, 70)
     price = _format_price(offer.price)
@@ -1035,9 +1001,8 @@ def _escape(text: str) -> str:
 
 # ---- wiring --------------------------------------------------------------
 
-async def build_dispatcher(
-    settings: Settings, engine: SearchEngine
-) -> tuple[Bot, Dispatcher]:
+
+async def build_dispatcher(settings: Settings, engine: SearchEngine) -> tuple[Bot, Dispatcher]:
     bot = Bot(token=settings.telegram_bot_token)
     dp = Dispatcher()
 

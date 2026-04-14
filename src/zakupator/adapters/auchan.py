@@ -59,9 +59,7 @@ class AuchanAdapter(ServiceAdapter):
             "channel": _CHANNEL_WEB,
         }
         try:
-            resp = await fetch_with_retry(
-                self._client, "GET", _SEARCH_URL, params=params
-            )
+            resp = await fetch_with_retry(self._client, "GET", _SEARCH_URL, params=params)
         except FetchError as e:
             return SearchResult(query=query, service=self.service, error=e.tag)
 
@@ -81,9 +79,7 @@ class AuchanAdapter(ServiceAdapter):
         raw_products = (payload.get("data") or {}).get("products") or []
         # Drop anything that failed to parse (belt-and-braces).
         offers: list[Offer] = [
-            offer
-            for offer in (self._offer_from_raw(p) for p in raw_products)
-            if offer is not None
+            offer for offer in (self._offer_from_raw(p) for p in raw_products) if offer is not None
         ]
         return SearchResult(query=query, service=self.service, offers=offers)
 

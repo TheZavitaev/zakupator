@@ -28,14 +28,12 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[int] = mapped_column(unique=True, index=True)
     username: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    addresses: Mapped[list["Address"]] = relationship(
+    addresses: Mapped[list[Address]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
-    cart_items: Mapped[list["CartItem"]] = relationship(
+    cart_items: Mapped[list[CartItem]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
     # When we add an "active address" feature, reintroduce a FK here with an
@@ -52,9 +50,7 @@ class Address(Base):
     text: Mapped[str] = mapped_column(String(256))
     lat: Mapped[float] = mapped_column()
     lon: Mapped[float] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped[User] = relationship(back_populates="addresses")
 
@@ -70,9 +66,7 @@ class CartItem(Base):
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     quantity: Mapped[int] = mapped_column(default=1)
     deep_link: Mapped[str | None] = mapped_column(Text, nullable=True)
-    added_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped[User] = relationship(back_populates="cart_items")
 
@@ -81,9 +75,7 @@ class SearchHistory(Base):
     __tablename__ = "search_history"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), index=True
-    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     query: Mapped[str] = mapped_column(String(200))
     searched_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), index=True
@@ -97,7 +89,9 @@ _session_factory: async_sessionmaker[AsyncSession] | None = None
 
 
 def init_engine(database_url: str) -> None:
-    global _engine, _session_factory
+    # Module-level singletons on purpose — the bot has a single process-wide
+    # engine and session factory, threaded into handlers via middleware.
+    global _engine, _session_factory  # noqa: PLW0603
     _engine = create_async_engine(database_url, future=True)
     _session_factory = async_sessionmaker(_engine, expire_on_commit=False)
 

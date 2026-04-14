@@ -16,7 +16,6 @@ from zakupator.adapters.metro import MetroAdapter
 from zakupator.adapters.vkusvill import VkusVillAdapter
 from zakupator.models import Address
 
-
 MSK_DEFAULT = Address(
     label="Москва (default)",
     text="Москва, центр",

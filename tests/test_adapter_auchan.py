@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import json
 from decimal import Decimal
-from pathlib import Path
 
 import pytest
 
+from tests.conftest import mock_client
 from zakupator.adapters.auchan import AuchanAdapter
 from zakupator.models import Service
-from tests.conftest import FIXTURES_DIR, mock_client
 
 
 async def test_parses_live_fixture(auchan_json, moscow_address):
@@ -46,15 +45,11 @@ async def test_extracts_discount_when_present(auchan_json, moscow_address):
     # is refreshed and nobody's on sale, this can be relaxed — but while prices
     # change, Auchan's top results for popular goods reliably include promos.
     data = json.loads(auchan_json)
-    raw_with_discount = [
-        p for p in data["data"]["products"] if p.get("oldPrice") is not None
-    ]
+    raw_with_discount = [p for p in data["data"]["products"] if p.get("oldPrice") is not None]
     if not raw_with_discount:
         pytest.skip("fixture has no discounted items — refresh capture when one lands")
 
-    matched = [
-        o for o in result.offers if o.price_original is not None
-    ]
+    matched = [o for o in result.offers if o.price_original is not None]
     assert matched, "at least one offer must have price_original"
     sample = matched[0]
     assert sample.price_original > sample.price

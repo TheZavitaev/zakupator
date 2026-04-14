@@ -4,9 +4,6 @@ from __future__ import annotations
 
 import time
 from decimal import Decimal
-from unittest.mock import patch
-
-import pytest
 
 from zakupator.models import Offer, SearchResult, Service
 from zakupator.search_cache import SearchCache

@@ -4,11 +4,9 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-import pytest
-
+from tests.conftest import mock_client
 from zakupator.adapters.vkusvill import VkusVillAdapter
 from zakupator.models import Service
-from tests.conftest import mock_client
 
 
 async def test_parses_three_cards_from_fixture(vkusvill_html, moscow_address):
@@ -20,8 +18,7 @@ async def test_parses_three_cards_from_fixture(vkusvill_html, moscow_address):
 
     assert result.error is None, f"unexpected adapter error: {result.error}"
     assert len(result.offers) == 3, (
-        "fixture has exactly 3 real product cards — "
-        "header and footer links must not leak in"
+        "fixture has exactly 3 real product cards — header and footer links must not leak in"
     )
     assert all(o.service == Service.VKUSVILL for o in result.offers)
 
@@ -38,9 +35,7 @@ async def test_extracts_title_price_and_weight(vkusvill_html, moscow_address):
     assert first.price == Decimal("100")
     assert first.price_original is None
     assert first.amount_unit == "900 мл"
-    assert first.deep_link == (
-        "https://vkusvill.ru/goods/moloko-2-5-v-butylke-900-ml-36296.html"
-    )
+    assert first.deep_link == ("https://vkusvill.ru/goods/moloko-2-5-v-butylke-900-ml-36296.html")
     assert first.product_id == "36296"
 
 

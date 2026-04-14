@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from decimal import Decimal
-from typing import AsyncIterator
 
-import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -21,9 +20,7 @@ async def session() -> AsyncIterator[AsyncSession]:
     shared-cache URI so SQLite treats multiple connections as one DB,
     then `expire_on_commit=False` so we can read objects after commit.
     """
-    engine = create_async_engine(
-        "sqlite+aiosqlite:///:memory:", future=True
-    )
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:", future=True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     factory = async_sessionmaker(engine, expire_on_commit=False)
@@ -55,7 +52,7 @@ async def test_get_or_create_user_idempotent(session):
 
 
 async def test_get_or_create_user_updates_username(session):
-    u = await cart_repo.get_or_create_user(session, 42, "alice")
+    await cart_repo.get_or_create_user(session, 42, "alice")
     await session.commit()
     u2 = await cart_repo.get_or_create_user(session, 42, "bob")
     assert u2.username == "bob"

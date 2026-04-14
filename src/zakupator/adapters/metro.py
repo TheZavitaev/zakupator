@@ -100,9 +100,7 @@ class MetroAdapter(ServiceAdapter):
             },
         }
         try:
-            resp = await fetch_with_retry(
-                self._client, "POST", _ENDPOINT, json=payload
-            )
+            resp = await fetch_with_retry(self._client, "POST", _ENDPOINT, json=payload)
         except FetchError as e:
             return SearchResult(query=query, service=self.service, error=e.tag)
 
@@ -122,13 +120,11 @@ class MetroAdapter(ServiceAdapter):
             msg = str(body["errors"][0].get("message", ""))[:120]
             return SearchResult(query=query, service=self.service, error=f"gql: {msg}")
 
-        products = (
-            ((body.get("data") or {}).get("search") or {}).get("products") or {}
-        ).get("products") or []
+        products = (((body.get("data") or {}).get("search") or {}).get("products") or {}).get(
+            "products"
+        ) or []
         offers: list[Offer] = [
-            offer
-            for offer in (self._offer_from_raw(p) for p in products)
-            if offer is not None
+            offer for offer in (self._offer_from_raw(p) for p in products) if offer is not None
         ]
         return SearchResult(query=query, service=self.service, offers=offers)
 
@@ -166,9 +162,7 @@ class MetroAdapter(ServiceAdapter):
                 price_original = None
 
         url = raw.get("url") or (f"/products/{raw.get('slug')}" if raw.get("slug") else "")
-        deep_link = (
-            f"https://online.metro-cc.ru{url}" if url.startswith("/") else (url or None)
-        )
+        deep_link = f"https://online.metro-cc.ru{url}" if url.startswith("/") else (url or None)
 
         images = raw.get("images") or []
         image_url = images[0] if images else None

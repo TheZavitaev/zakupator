@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
+from tests.conftest import mock_client
 from zakupator.adapters.metro import MetroAdapter
 from zakupator.models import Service
-from tests.conftest import mock_client
 
 
 async def test_parses_live_fixture(metro_json, moscow_address):
@@ -39,9 +37,7 @@ async def test_deep_link_absolute(metro_json, moscow_address):
 
 
 async def test_gql_error_surfaced(moscow_address):
-    body = json.dumps(
-        {"errors": [{"message": "argument: storeId is required"}]}
-    ).encode("utf-8")
+    body = json.dumps({"errors": [{"message": "argument: storeId is required"}]}).encode("utf-8")
     adapter = MetroAdapter(client=mock_client(body))
     try:
         result = await adapter.search("q", moscow_address, limit=5)

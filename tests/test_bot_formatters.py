@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-import pytest
-
 from zakupator import cart_repo
 from zakupator.bot import (
     _build_compare_keyboard,
@@ -89,9 +87,7 @@ class TestFormatOfferLine:
         assert "₽" in line
 
     def test_shows_discount_with_percentage(self):
-        line = _format_offer_line(
-            _offer(Service.AUCHAN, "X", "80", original="100")
-        )
+        line = _format_offer_line(_offer(Service.AUCHAN, "X", "80", original="100"))
         assert "100" in line
         assert "80" in line
         assert "-20%" in line
@@ -101,9 +97,7 @@ class TestFormatOfferLine:
         assert "нет" in line.lower()
 
     def test_html_escaped_in_title(self):
-        line = _format_offer_line(
-            _offer(Service.AUCHAN, "Tom & Jerry <brand>", "50")
-        )
+        line = _format_offer_line(_offer(Service.AUCHAN, "Tom & Jerry <brand>", "50"))
         assert "&amp;" in line
         assert "&lt;brand&gt;" in line
         assert "<brand>" not in line  # raw < never leaks
@@ -154,9 +148,7 @@ class TestFormatSearchResults:
         assert "a" in text  # Auchan offer still shown
 
     def test_all_empty_shows_fallback(self):
-        results = [
-            SearchResult(query="q", service=s, offers=[]) for s in Service
-        ]
+        results = [SearchResult(query="q", service=s, offers=[]) for s in Service]
         text = _format_search_results("молоко", results)
         assert "не нашли" in text or "ничего" in text.lower()
 
@@ -312,9 +304,7 @@ class TestBuildCompareKeyboard:
         assert row[0].callback_data == "a:tok:0"
 
     def test_returns_none_when_nothing_to_show(self):
-        reduced = [
-            SearchResult(query="q", service=s, offers=[]) for s in Service
-        ]
+        reduced = [SearchResult(query="q", service=s, offers=[]) for s in Service]
         assert _build_compare_keyboard("tok", reduced) is None
 
 
@@ -352,7 +342,12 @@ class TestHumanizeError:
 
 
 def _cart_item(
-    *, id: int, service: Service, title: str, price: str, qty: int = 1,
+    *,
+    id: int,
+    service: Service,
+    title: str,
+    price: str,
+    qty: int = 1,
     deep_link: str | None = None,
 ) -> CartItem:
     item = CartItem(
@@ -369,9 +364,7 @@ def _cart_item(
 
 
 def _cart_group(service: Service, *items: CartItem) -> cart_repo.CartGroup:
-    subtotal = sum(
-        (item.price * item.quantity for item in items), start=Decimal("0")
-    )
+    subtotal = sum((item.price * item.quantity for item in items), start=Decimal("0"))
     return cart_repo.CartGroup(service=service, items=list(items), subtotal=subtotal)
 
 
@@ -442,14 +435,9 @@ class TestFormatCart:
         ]
         _, keyboard = _format_cart(groups)
         # Find the row with a URL button (not callback_data).
-        url_rows = [
-            row for row in keyboard.inline_keyboard
-            if any(b.url for b in row)
-        ]
+        url_rows = [row for row in keyboard.inline_keyboard if any(b.url for b in row)]
         assert url_rows, "must have at least one 'open in service' link row"
-        assert any(
-            "auchan.ru" in b.url for row in url_rows for b in row if b.url
-        )
+        assert any("auchan.ru" in b.url for row in url_rows for b in row if b.url)
 
 
 class TestFormatCartPlaintext:

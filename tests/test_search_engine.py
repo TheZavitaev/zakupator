@@ -9,6 +9,7 @@ import pytest
 
 from zakupator.adapters.base import ServiceAdapter
 from zakupator.models import Address, Offer, SearchResult, Service
+from zakupator.response_cache import ResponseCache
 from zakupator.search import SearchEngine
 
 
@@ -124,11 +125,7 @@ async def test_close_propagates_to_adapters(address):
 
 
 async def test_response_cache_prevents_second_network_call(address):
-    from zakupator.response_cache import ResponseCache
-
-    adapter = _FakeAdapter(
-        Service.VKUSVILL, offers=[_o(Service.VKUSVILL, "x")]
-    )
+    adapter = _FakeAdapter(Service.VKUSVILL, offers=[_o(Service.VKUSVILL, "x")])
     # Monkey-patch the adapter to count invocations.
     original_search = adapter.search
     call_count = {"n": 0}
@@ -150,8 +147,6 @@ async def test_response_cache_prevents_second_network_call(address):
 
 
 async def test_response_cache_key_ignores_case_and_whitespace(address):
-    from zakupator.response_cache import ResponseCache
-
     adapter = _FakeAdapter(Service.VKUSVILL, offers=[_o(Service.VKUSVILL, "x")])
     cache = ResponseCache()
     async with SearchEngine([adapter], response_cache=cache) as engine:
@@ -162,8 +157,6 @@ async def test_response_cache_key_ignores_case_and_whitespace(address):
 
 
 async def test_errored_results_not_cached(address):
-    from zakupator.response_cache import ResponseCache
-
     adapter = _FakeAdapter(Service.VKUSVILL, error="http 503")
     cache = ResponseCache()
     async with SearchEngine([adapter], response_cache=cache) as engine:

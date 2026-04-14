@@ -18,5 +18,5 @@ class ServiceAdapter(ABC):
     async def search(self, query: str, address: Address, limit: int = 5) -> SearchResult:
         """Search products by free-text query, scoped to the given address."""
 
-    async def close(self) -> None:
+    async def close(self) -> None:  # noqa: B027 — default no-op; override if the adapter holds resources
         """Release any held resources (http clients, browser contexts)."""

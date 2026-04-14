@@ -26,12 +26,10 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from decimal import Decimal
 
 from rapidfuzz import fuzz
 
 from zakupator.models import Offer, SearchResult, Service
-
 
 # ---- quantity extraction -------------------------------------------------
 
@@ -155,9 +153,7 @@ class MatchedOffer:
     score: float  # 0..100, name similarity at match time
 
 
-def find_matches(
-    reference: Offer, candidates: list[SearchResult]
-) -> list[MatchedOffer]:
+def find_matches(reference: Offer, candidates: list[SearchResult]) -> list[MatchedOffer]:
     """For a reference offer, return the best match in each other service.
 
     At most one offer per service is returned — the one with the highest
@@ -178,9 +174,7 @@ def find_matches(
                 continue
             score = name_similarity(reference.title, cand.title)
             if best is None or score > best.score:
-                best = MatchedOffer(
-                    service=result.service, offer=cand, score=score
-                )
+                best = MatchedOffer(service=result.service, offer=cand, score=score)
         if best is not None:
             out.append(best)
     return out

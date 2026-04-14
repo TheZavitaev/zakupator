@@ -25,13 +25,9 @@ class CartGroup:
     subtotal: Decimal
 
 
-async def get_or_create_user(
-    session: AsyncSession, telegram_id: int, username: str | None
-) -> User:
+async def get_or_create_user(session: AsyncSession, telegram_id: int, username: str | None) -> User:
     """Find a User by telegram_id or insert a new row. Caller commits."""
-    result = await session.execute(
-        select(User).where(User.telegram_id == telegram_id)
-    )
+    result = await session.execute(select(User).where(User.telegram_id == telegram_id))
     user = result.scalar_one_or_none()
     if user is None:
         user = User(telegram_id=telegram_id, username=username)
@@ -105,14 +101,10 @@ async def list_cart(session: AsyncSession, user_id: int) -> list[CartGroup]:
     return groups
 
 
-async def remove_cart_item(
-    session: AsyncSession, user_id: int, item_id: int
-) -> bool:
+async def remove_cart_item(session: AsyncSession, user_id: int, item_id: int) -> bool:
     """Delete a single cart line. Returns True if something was removed."""
     result = await session.execute(
-        delete(CartItem).where(
-            CartItem.id == item_id, CartItem.user_id == user_id
-        )
+        delete(CartItem).where(CartItem.id == item_id, CartItem.user_id == user_id)
     )
     # CursorResult exposes rowcount; the async layer widens to Result in stubs.
     return (getattr(result, "rowcount", 0) or 0) > 0
@@ -130,9 +122,7 @@ async def change_quantity(
     get None, matching the "not found" path.
     """
     result = await session.execute(
-        select(CartItem).where(
-            CartItem.id == item_id, CartItem.user_id == user_id
-        )
+        select(CartItem).where(CartItem.id == item_id, CartItem.user_id == user_id)
     )
     item = result.scalar_one_or_none()
     if item is None:
@@ -147,15 +137,11 @@ async def change_quantity(
 
 async def clear_cart(session: AsyncSession, user_id: int) -> int:
     """Wipe the user's cart. Returns the number of rows deleted."""
-    result = await session.execute(
-        delete(CartItem).where(CartItem.user_id == user_id)
-    )
+    result = await session.execute(delete(CartItem).where(CartItem.user_id == user_id))
     return int(getattr(result, "rowcount", 0) or 0)
 
 
-async def record_search(
-    session: AsyncSession, user_id: int, query: str
-) -> None:
+async def record_search(session: AsyncSession, user_id: int, query: str) -> None:
     """Append a query to search history, collapsing immediate duplicates.
 
     If the user just searched for the same string, we don't insert another
@@ -174,9 +160,7 @@ async def record_search(
     session.add(SearchHistory(user_id=user_id, query=query))
 
 
-async def list_recent_searches(
-    session: AsyncSession, user_id: int, limit: int = 10
-) -> list[str]:
+async def list_recent_searches(session: AsyncSession, user_id: int, limit: int = 10) -> list[str]:
     """Return the user's most recent distinct queries, newest first."""
     # Subquery for max(searched_at) per query value, so we can order by
     # the *last* time each query was seen.
@@ -189,7 +173,5 @@ async def list_recent_searches(
         .group_by(SearchHistory.query)
         .subquery()
     )
-    result = await session.execute(
-        select(subq.c.query).order_by(desc(subq.c.latest)).limit(limit)
-    )
+    result = await session.execute(select(subq.c.query).order_by(desc(subq.c.latest)).limit(limit))
     return [row[0] for row in result.all()]

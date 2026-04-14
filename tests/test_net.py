@@ -38,9 +38,7 @@ FAST_POLICY = RetryPolicy(max_attempts=3, backoff=(0.0, 0.0))
 async def test_returns_successful_response_without_retry():
     client, calls = _client_with_script([httpx.Response(200, content=b"ok")])
     try:
-        resp = await fetch_with_retry(
-            client, "GET", "https://example.com/", policy=FAST_POLICY
-        )
+        resp = await fetch_with_retry(client, "GET", "https://example.com/", policy=FAST_POLICY)
         assert resp.status_code == 200
         assert calls[0] == 1
     finally:
@@ -55,9 +53,7 @@ async def test_retries_on_503_then_succeeds():
         ]
     )
     try:
-        resp = await fetch_with_retry(
-            client, "GET", "https://example.com/", policy=FAST_POLICY
-        )
+        resp = await fetch_with_retry(client, "GET", "https://example.com/", policy=FAST_POLICY)
         assert resp.status_code == 200
         assert calls[0] == 2, "must have retried once"
     finally:
@@ -72,9 +68,7 @@ async def test_retries_on_connect_timeout_then_succeeds():
         ]
     )
     try:
-        resp = await fetch_with_retry(
-            client, "GET", "https://example.com/", policy=FAST_POLICY
-        )
+        resp = await fetch_with_retry(client, "GET", "https://example.com/", policy=FAST_POLICY)
         assert resp.status_code == 200
         assert calls[0] == 2
     finally:
@@ -82,14 +76,10 @@ async def test_retries_on_connect_timeout_then_succeeds():
 
 
 async def test_gives_up_after_max_attempts_on_persistent_503():
-    client, calls = _client_with_script(
-        [httpx.Response(503, content=b"down") for _ in range(5)]
-    )
+    client, calls = _client_with_script([httpx.Response(503, content=b"down") for _ in range(5)])
     try:
         with pytest.raises(FetchError) as info:
-            await fetch_with_retry(
-                client, "GET", "https://example.com/", policy=FAST_POLICY
-            )
+            await fetch_with_retry(client, "GET", "https://example.com/", policy=FAST_POLICY)
         assert info.value.reason == "http"
         assert info.value.status == 503
         assert calls[0] == 3, "must have tried exactly max_attempts times"
@@ -98,14 +88,10 @@ async def test_gives_up_after_max_attempts_on_persistent_503():
 
 
 async def test_gives_up_after_max_attempts_on_persistent_timeout():
-    client, calls = _client_with_script(
-        [httpx.ReadTimeout("slow") for _ in range(5)]
-    )
+    client, calls = _client_with_script([httpx.ReadTimeout("slow") for _ in range(5)])
     try:
         with pytest.raises(FetchError) as info:
-            await fetch_with_retry(
-                client, "GET", "https://example.com/", policy=FAST_POLICY
-            )
+            await fetch_with_retry(client, "GET", "https://example.com/", policy=FAST_POLICY)
         assert info.value.reason == "network"
         assert calls[0] == 3
     finally:
@@ -115,9 +101,7 @@ async def test_gives_up_after_max_attempts_on_persistent_timeout():
 async def test_does_not_retry_on_404():
     client, calls = _client_with_script([httpx.Response(404, content=b"missing")])
     try:
-        resp = await fetch_with_retry(
-            client, "GET", "https://example.com/", policy=FAST_POLICY
-        )
+        resp = await fetch_with_retry(client, "GET", "https://example.com/", policy=FAST_POLICY)
         # Non-retryable → returned as-is, caller decides what to do.
         assert resp.status_code == 404
         assert calls[0] == 1
@@ -133,9 +117,7 @@ async def test_retries_on_429_rate_limit():
         ]
     )
     try:
-        resp = await fetch_with_retry(
-            client, "GET", "https://example.com/", policy=FAST_POLICY
-        )
+        resp = await fetch_with_retry(client, "GET", "https://example.com/", policy=FAST_POLICY)
         assert resp.status_code == 200
         assert calls[0] == 2
     finally:
@@ -146,5 +128,5 @@ async def test_default_policy_values_are_sane():
     assert DEFAULT_POLICY.max_attempts >= 2
     assert len(DEFAULT_POLICY.backoff) == DEFAULT_POLICY.max_attempts - 1
     # Backoff should be non-decreasing.
-    for a, b in zip(DEFAULT_POLICY.backoff, DEFAULT_POLICY.backoff[1:]):
+    for a, b in zip(DEFAULT_POLICY.backoff, DEFAULT_POLICY.backoff[1:], strict=False):
         assert b >= a

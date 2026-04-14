@@ -5,8 +5,6 @@ from __future__ import annotations
 import time
 from decimal import Decimal
 
-import pytest
-
 from zakupator.models import Offer, SearchResult, Service
 from zakupator.response_cache import ResponseCache
 

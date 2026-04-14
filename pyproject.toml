@@ -64,7 +64,6 @@ select = [
     "RUF",  # ruff-specific
     "C4",   # comprehensions
     "PIE",  # misc cleanups
-    "TCH",  # type-checking imports
     "PTH",  # pathlib
     "ASYNC",
 ]
@@ -76,6 +75,19 @@ ignore = [
     "PLR0915", # too many statements
     "PLR2004", # magic numbers — a handful are deliberate
     "SIM108",  # ternary not always clearer
+    # Ambiguous-unicode rules flag every Cyrillic letter that looks like a
+    # Latin one. This project is Russian-facing by design — Cyrillic is a
+    # feature, not a bug. Disabling across the board.
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    # TCH/TC rules want typing-only imports moved under TYPE_CHECKING.
+    # With `from __future__ import annotations` every annotation is already
+    # a string, so the import doesn't incur runtime cost — TCH just adds
+    # noise. Skip.
+    "TC001",
+    "TC002",
+    "TC003",
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-import pytest
-
 from zakupator.matching import (
     MatchedOffer,
     cheapest_across_matches,
@@ -125,21 +123,15 @@ class TestIsSameProduct:
 
 class TestFindMatches:
     def test_finds_best_match_in_each_other_service(self):
-        reference = _offer(
-            Service.VKUSVILL, "Молоко Простоквашино 2,5% 930 мл", "100"
-        )
+        reference = _offer(Service.VKUSVILL, "Молоко Простоквашино 2,5% 930 мл", "100")
         candidates = [
             SearchResult(
                 query="q",
                 service=Service.AUCHAN,
                 offers=[
                     _offer(Service.AUCHAN, "Сыр Российский 500 г", "300"),
-                    _offer(
-                        Service.AUCHAN, "Молоко Простоквашино 2,5% 930 мл", "88"
-                    ),
-                    _offer(
-                        Service.AUCHAN, "Молоко Простоквашино 1,5% 930 мл", "85"
-                    ),
+                    _offer(Service.AUCHAN, "Молоко Простоквашино 2,5% 930 мл", "88"),
+                    _offer(Service.AUCHAN, "Молоко Простоквашино 1,5% 930 мл", "85"),
                 ],
             ),
             SearchResult(

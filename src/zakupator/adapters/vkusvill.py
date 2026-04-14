@@ -50,9 +50,7 @@ class VkusVillAdapter(ServiceAdapter):
     async def search(self, query: str, address: Address, limit: int = 5) -> SearchResult:
         params = {"type": "products", "q": query}
         try:
-            resp = await fetch_with_retry(
-                self._client, "GET", _SEARCH_URL, params=params
-            )
+            resp = await fetch_with_retry(self._client, "GET", _SEARCH_URL, params=params)
         except FetchError as e:
             return SearchResult(query=query, service=self.service, error=e.tag)
 
