@@ -13,7 +13,7 @@ or similar.
 
 from __future__ import annotations
 
-import random
+import secrets
 import string
 import time
 from collections import OrderedDict
@@ -79,13 +79,15 @@ class SearchCache:
     def _unique_token(self) -> str:
         # 6 chars from 36 alphabet → ~2 billion space. Collisions are not
         # a safety issue (we'd only overwrite an older entry), but we still
-        # retry a few times to keep them rare.
+        # retry a few times to keep them rare. Using secrets over random
+        # is free and silences B311 — the token IS user-facing in callback
+        # data so unpredictability is a mild plus.
         for _ in range(5):
-            token = "".join(random.choices(self._ALPHABET, k=6))
+            token = "".join(secrets.choice(self._ALPHABET) for _ in range(6))
             if token not in self._store:
                 return token
         # Last resort: just overwrite.
-        return "".join(random.choices(self._ALPHABET, k=6))
+        return "".join(secrets.choice(self._ALPHABET) for _ in range(6))
 
     def _evict(self) -> None:
         # Drop oldest entries when over capacity. TTL eviction is lazy on get.
