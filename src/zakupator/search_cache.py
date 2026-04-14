@@ -19,6 +19,11 @@ import time
 from collections import OrderedDict
 from dataclasses import dataclass
 
+from zakupator.constants import (
+    SEARCH_CACHE_MAX_SIZE,
+    SEARCH_CACHE_TOKEN_LENGTH,
+    SEARCH_CACHE_TTL_SECONDS,
+)
 from zakupator.models import Offer, SearchResult, Service
 
 
@@ -36,7 +41,11 @@ class SearchCache:
 
     _ALPHABET = string.ascii_lowercase + string.digits
 
-    def __init__(self, max_size: int = 512, ttl_seconds: float = 30 * 60) -> None:
+    def __init__(
+        self,
+        max_size: int = SEARCH_CACHE_MAX_SIZE,
+        ttl_seconds: float = SEARCH_CACHE_TTL_SECONDS,
+    ) -> None:
         self._max_size = max_size
         self._ttl = ttl_seconds
         self._store: OrderedDict[str, CachedSearch] = OrderedDict()
@@ -83,11 +92,13 @@ class SearchCache:
         # is free and silences B311 — the token IS user-facing in callback
         # data so unpredictability is a mild plus.
         for _ in range(5):
-            token = "".join(secrets.choice(self._ALPHABET) for _ in range(6))
+            token = "".join(
+                secrets.choice(self._ALPHABET) for _ in range(SEARCH_CACHE_TOKEN_LENGTH)
+            )
             if token not in self._store:
                 return token
         # Last resort: just overwrite.
-        return "".join(secrets.choice(self._ALPHABET) for _ in range(6))
+        return "".join(secrets.choice(self._ALPHABET) for _ in range(SEARCH_CACHE_TOKEN_LENGTH))
 
     def _evict(self) -> None:
         # Drop oldest entries when over capacity. TTL eviction is lazy on get.

@@ -24,6 +24,7 @@ import time
 from collections import OrderedDict
 from dataclasses import dataclass
 
+from zakupator.constants import RESPONSE_CACHE_MAX_SIZE, RESPONSE_CACHE_TTL_SECONDS
 from zakupator.models import SearchResult, Service
 
 _WHITESPACE_RUN = re.compile(r"\s+")
@@ -40,7 +41,11 @@ class _Entry:
 
 
 class ResponseCache:
-    def __init__(self, max_size: int = 256, ttl_seconds: float = 5 * 60) -> None:
+    def __init__(
+        self,
+        max_size: int = RESPONSE_CACHE_MAX_SIZE,
+        ttl_seconds: float = RESPONSE_CACHE_TTL_SECONDS,
+    ) -> None:
         self._max_size = max_size
         self._ttl = ttl_seconds
         self._store: OrderedDict[tuple[str, str, int], _Entry] = OrderedDict()

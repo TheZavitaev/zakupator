@@ -29,6 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from zakupator import cart_repo
 from zakupator.config import Settings
+from zakupator.constants import CART_TITLE_TRUNCATE, HISTORY_LIMIT
 from zakupator.db import get_session_factory
 from zakupator.matching import MatchedOffer, find_matches
 from zakupator.middleware import DbSessionMiddleware
@@ -615,7 +616,7 @@ def _format_cart(
         for item in group.items:
             qty = f" ×{item.quantity}" if item.quantity > 1 else ""
             link = item.deep_link
-            title = _truncate(item.title, 55)
+            title = _truncate(item.title, CART_TITLE_TRUNCATE)
             title_html = hlink(title, link) if link else _escape(title)
             price = _format_price(item.price)
             lines.append(f"  • {title_html} — {price} ₽{qty}")
@@ -901,7 +902,7 @@ async def on_history(message: Message, session: AsyncSession) -> None:
     user = await cart_repo.get_or_create_user(
         session, message.from_user.id, message.from_user.username
     )
-    queries = await cart_repo.list_recent_searches(session, user.id, limit=10)
+    queries = await cart_repo.list_recent_searches(session, user.id, limit=HISTORY_LIMIT)
     if not queries:
         await message.answer(
             "История пуста. Сделай первый <code>/search</code>.",

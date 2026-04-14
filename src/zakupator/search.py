@@ -17,6 +17,7 @@ from zakupator.adapters.auchan import AuchanAdapter
 from zakupator.adapters.base import ServiceAdapter
 from zakupator.adapters.metro import MetroAdapter
 from zakupator.adapters.vkusvill import VkusVillAdapter
+from zakupator.constants import SEARCH_LIMIT_PER_SERVICE, SEARCH_TIMEOUT_SECONDS
 from zakupator.models import Address, SearchResult, Service
 from zakupator.response_cache import ResponseCache
 
@@ -70,8 +71,8 @@ class SearchEngine:
         query: str,
         address: Address,
         *,
-        limit_per_service: int = 3,
-        timeout: float = 12.0,  # noqa: ASYNC109 — high-level API knob, not a cancellation token
+        limit_per_service: int = SEARCH_LIMIT_PER_SERVICE,
+        timeout: float = SEARCH_TIMEOUT_SECONDS,  # noqa: ASYNC109 — high-level API knob, not a cancellation token
     ) -> list[SearchResult]:
         """Run `search(query, ...)` on every adapter in parallel.
 

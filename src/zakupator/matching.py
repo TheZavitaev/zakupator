@@ -29,6 +29,10 @@ from dataclasses import dataclass
 
 from rapidfuzz import fuzz
 
+from zakupator.constants import (
+    MATCH_NAME_SIMILARITY_THRESHOLD,
+    MATCH_QUANTITY_RELATIVE_TOLERANCE,
+)
 from zakupator.models import Offer, SearchResult, Service
 
 # ---- quantity extraction -------------------------------------------------
@@ -97,15 +101,13 @@ def extract_quantity(name: str) -> Quantity | None:
 # ---- similarity ----------------------------------------------------------
 
 
-# Thresholds were picked by eyeballing real data during recon:
-# - token_set_ratio in [80..100] strongly correlates with "same product"
-# - sub-70 is almost always a different product or a wildly different package
-# - 70..80 is a fuzzy zone we intentionally exclude
-_NAME_SIM_THRESHOLD = 80
-
-# Quantity tolerance: "930 мл" vs "970 мл" is close enough to consider the
-# same class (different brands often vary by 20-50ml). "1 л" vs "2 л" isn't.
-_QTY_RELATIVE_TOLERANCE = 0.12
+# Thresholds live in constants.py — rationale kept here for readers:
+# - token_set_ratio in [80..100] strongly correlates with "same product";
+#   sub-70 is almost always wrong; 70..80 is a fuzzy zone we exclude.
+# - Quantity tolerance: "930 мл" vs "970 мл" is close enough (different
+#   brands vary by 20-50 ml); "1 л" vs "2 л" isn't.
+_NAME_SIM_THRESHOLD = MATCH_NAME_SIMILARITY_THRESHOLD
+_QTY_RELATIVE_TOLERANCE = MATCH_QUANTITY_RELATIVE_TOLERANCE
 
 
 def name_similarity(a: str, b: str) -> float:

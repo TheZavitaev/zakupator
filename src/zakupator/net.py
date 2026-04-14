@@ -14,19 +14,36 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Any
 
 import httpx
 
+from zakupator.constants import RETRY_BACKOFF_SECONDS, RETRY_MAX_ATTEMPTS
+
 logger = logging.getLogger(__name__)
+
+
+class FetchFailure(StrEnum):
+    """Closed set of reasons `fetch_with_retry` may fail.
+
+    Values are the short stable tags the bot uses to pick user copy.
+    `HTTP` is special: when paired with a status code, the exposed tag
+    widens to e.g. "http 503" so the humanizer can distinguish between
+    retryable overloads and persistent bad requests.
+    """
+
+    HTTP = "http"
+    NETWORK = "network"
+    TIMEOUT = "timeout"
 
 
 @dataclass(frozen=True)
 class RetryPolicy:
-    max_attempts: int = 3
+    max_attempts: int = RETRY_MAX_ATTEMPTS
     # Delays between attempts in seconds. len == max_attempts - 1.
     # After final attempt we give up, so there's no delay after it.
-    backoff: tuple[float, ...] = (0.3, 1.0)
+    backoff: tuple[float, ...] = RETRY_BACKOFF_SECONDS
 
 
 DEFAULT_POLICY = RetryPolicy()
@@ -40,15 +57,21 @@ _RETRYABLE_STATUS = frozenset({408, 429, 500, 502, 503, 504})
 class FetchError(Exception):
     """Unified error bubble for adapters.
 
-    `reason` is a short machine-readable tag used by higher layers to
-    decide user-facing copy. `status` is optional for HTTP errors.
+    `reason` is a closed enum of failure categories. `status` is set
+    only when `reason is FetchFailure.HTTP`.
     """
 
-    def __init__(self, reason: str, *, status: int | None = None, detail: str = "") -> None:
+    def __init__(
+        self,
+        reason: FetchFailure,
+        *,
+        status: int | None = None,
+        detail: str = "",
+    ) -> None:
         self.reason = reason
         self.status = status
         self.detail = detail
-        super().__init__(reason if not detail else f"{reason}: {detail}")
+        super().__init__(reason.value if not detail else f"{reason.value}: {detail}")
 
     @property
     def tag(self) -> str:
@@ -57,9 +80,9 @@ class FetchError(Exception):
         Examples: "http 503", "http 429", "network", "timeout".
         The bot's `_humanize_error` knows how to map these into user text.
         """
-        if self.reason == "http" and self.status is not None:
+        if self.reason is FetchFailure.HTTP and self.status is not None:
             return f"http {self.status}"
-        return self.reason
+        return self.reason.value
 
 
 async def fetch_with_retry(
@@ -96,12 +119,12 @@ async def fetch_with_retry(
         except httpx.HTTPError as e:
             # Other httpx errors: protocol violations, decode errors etc.
             # These are not typically transient, so don't retry.
-            raise FetchError("network", detail=str(e)[:80]) from e
+            raise FetchError(FetchFailure.NETWORK, detail=str(e)[:80]) from e
         else:
             # Got a response. Retry only if the status is in our retryable set.
             if response.status_code in _RETRYABLE_STATUS:
                 last_exc = FetchError(
-                    "http",
+                    FetchFailure.HTTP,
                     status=response.status_code,
                     detail=f"status {response.status_code}",
                 )
@@ -129,4 +152,7 @@ async def fetch_with_retry(
     # All attempts exhausted.
     if isinstance(last_exc, FetchError):
         raise last_exc
-    raise FetchError("network", detail=type(last_exc).__name__ if last_exc else "unknown")
+    raise FetchError(
+        FetchFailure.NETWORK,
+        detail=type(last_exc).__name__ if last_exc else "unknown",
+    )
