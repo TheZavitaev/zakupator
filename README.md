@@ -168,6 +168,37 @@ sudo systemctl restart zakupator
 5. Написать тест на парсер — положить фикстуру в `tests/fixtures/`, использовать `mock_client` из `tests/conftest.py`
 6. При необходимости — обновить `scripts/capture_fixtures.py`
 
+## Документация
+
+Короткие ссылки для тех, кто копает глубже:
+
+- [docs/SPEC.md](docs/SPEC.md) — авторитетные контракты: данные, адаптеры, матчинг, callback-схема, БД, ошибки
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — компоненты, поток запроса, обоснования решений
+- [docs/ADAPTERS.md](docs/ADAPTERS.md) — чек-лист: как добавить новый сервис
+- [docs/recon.md](docs/recon.md) — отчёт по разведке всех сервисов на рынке
+- [CHANGELOG.md](CHANGELOG.md) — история релизов
+
+## Качество кода
+
+Проект прогоняется через единый локальный гейт, который зеркалит CI:
+
+```bash
+scripts/check.sh all       # всё сразу
+scripts/check.sh lint      # только ruff
+scripts/check.sh type      # только mypy --strict
+scripts/check.sh sast      # bandit + semgrep + pip-audit
+scripts/check.sh test      # только pytest
+```
+
+Пайплайн в GitHub Actions (`.github/workflows/ci.yml`) запускает те же
+четыре этапа параллельными джобами на каждый push и PR в `main`.
+
+Pre-commit хуки (ruff, mypy, bandit, базовые санитайзеры) ставятся один раз:
+
+```bash
+.venv/bin/pre-commit install
+```
+
 ## Лицензия / ответственность
 
 Этот проект — для личного использования. Каждый сервис предоставляет данные через свои публичные веб-интерфейсы; бот отправляет ровно те же запросы, что делает обычный браузер, в нормальном темпе. Не предназначен для массовых коммерческих выгрузок — уважай rate limits и ToS сервисов.
