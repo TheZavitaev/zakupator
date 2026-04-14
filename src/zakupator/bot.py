@@ -757,17 +757,19 @@ async def _rerender_cart(
     the message the callback is attached to was deleted or the cart went
     empty, we fall back to a plain "empty cart" text.
     """
-    if callback.message is None:
+    msg = callback.message
+    if not isinstance(msg, Message):
+        # None, or an InaccessibleMessage (too old to edit) — give up silently.
         return
     groups = await cart_repo.list_cart(session, user_id)
     if not groups:
-        await callback.message.edit_text(
+        await msg.edit_text(
             "Корзина пуста. Сделай <code>/search</code> и добавь что-нибудь.",
             parse_mode=ParseMode.HTML,
         )
         return
     text, keyboard = _format_cart(groups)
-    await callback.message.edit_text(
+    await msg.edit_text(
         text,
         parse_mode=ParseMode.HTML,
         disable_web_page_preview=True,
@@ -878,7 +880,9 @@ async def on_clear_confirm(
         await callback.answer()
         return
     action = callback.data.split(":", 1)[1]
-    msg = callback.message
+    raw_msg = callback.message
+    # Narrow out InaccessibleMessage so edit_text/answer are callable.
+    msg = raw_msg if isinstance(raw_msg, Message) else None
 
     if action == "ask":
         # Triggered from the 🧹 button inside /cart.

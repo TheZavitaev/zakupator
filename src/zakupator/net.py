@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 import httpx
 
@@ -67,7 +68,7 @@ async def fetch_with_retry(
     url: str,
     *,
     policy: RetryPolicy = DEFAULT_POLICY,
-    **kwargs,
+    **kwargs: Any,
 ) -> httpx.Response:
     """Issue an HTTP request with retries on transient failures.
 

@@ -12,6 +12,7 @@ The endpoint only returns top N products (up to ~10), which is fine for our
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import Any
 
 import httpx
 
@@ -78,13 +79,16 @@ class AuchanAdapter(ServiceAdapter):
             return SearchResult(query=query, service=self.service, error="non-json response")
 
         raw_products = (payload.get("data") or {}).get("products") or []
-        offers = [self._offer_from_raw(p) for p in raw_products]
         # Drop anything that failed to parse (belt-and-braces).
-        offers = [o for o in offers if o is not None]
+        offers: list[Offer] = [
+            offer
+            for offer in (self._offer_from_raw(p) for p in raw_products)
+            if offer is not None
+        ]
         return SearchResult(query=query, service=self.service, offers=offers)
 
     @staticmethod
-    def _offer_from_raw(raw: dict) -> Offer | None:
+    def _offer_from_raw(raw: dict[str, Any]) -> Offer | None:
         # Minimum fields we need to be useful. If any of these is missing,
         # the product isn't worth showing.
         name = raw.get("name")

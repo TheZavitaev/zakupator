@@ -114,7 +114,8 @@ async def remove_cart_item(
             CartItem.id == item_id, CartItem.user_id == user_id
         )
     )
-    return (result.rowcount or 0) > 0
+    # CursorResult exposes rowcount; the async layer widens to Result in stubs.
+    return (getattr(result, "rowcount", 0) or 0) > 0
 
 
 async def change_quantity(
@@ -149,7 +150,7 @@ async def clear_cart(session: AsyncSession, user_id: int) -> int:
     result = await session.execute(
         delete(CartItem).where(CartItem.user_id == user_id)
     )
-    return result.rowcount or 0
+    return int(getattr(result, "rowcount", 0) or 0)
 
 
 async def record_search(

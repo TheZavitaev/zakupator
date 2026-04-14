@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import AsyncExitStack
+from types import TracebackType
 
 from zakupator.adapters.auchan import AuchanAdapter
 from zakupator.adapters.base import ServiceAdapter
@@ -52,7 +53,12 @@ class SearchEngine:
         self._stack = AsyncExitStack()
         return self
 
-    async def __aexit__(self, exc_type, exc, tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
         await self.close()
 
     @property
@@ -138,7 +144,7 @@ class SearchEngine:
             )
 
     def _service_from_task(
-        self, task: asyncio.Task, candidates: list[ServiceAdapter]
+        self, task: asyncio.Task[SearchResult], candidates: list[ServiceAdapter]
     ) -> Service:
         name = task.get_name() or ""
         prefix = "search/"

@@ -15,6 +15,7 @@ store-lookup call or an address→store resolver.
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import Any
 
 import httpx
 
@@ -124,11 +125,14 @@ class MetroAdapter(ServiceAdapter):
         products = (
             ((body.get("data") or {}).get("search") or {}).get("products") or {}
         ).get("products") or []
-        offers = [self._offer_from_raw(p) for p in products]
-        offers = [o for o in offers if o is not None]
+        offers: list[Offer] = [
+            offer
+            for offer in (self._offer_from_raw(p) for p in products)
+            if offer is not None
+        ]
         return SearchResult(query=query, service=self.service, offers=offers)
 
-    def _offer_from_raw(self, raw: dict) -> Offer | None:
+    def _offer_from_raw(self, raw: dict[str, Any]) -> Offer | None:
         name = raw.get("name")
         if not name:
             return None
