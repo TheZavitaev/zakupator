@@ -1,0 +1,307 @@
+{
+  "data": {
+    "search": {
+      "products": {
+        "total": 13,
+        "products": [
+          {
+            "id": 569746,
+            "article": 84771,
+            "name": "Молоко Простоквашино безлактозное ультрапастеризованное 1.5%, 970мл",
+            "url": "/products/moloko-prostokvashino-bezlaktoznoye-ultrapasterizovannoye-1-5-970ml-84771",
+            "slug": "moloko-prostokvashino-bezlaktoznoye-ultrapasterizovannoye-1-5-970ml-84771",
+            "images": [
+              "https://cdn.metro-cc.ru/ru/ru_pim_75879001001_01.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_75879001001_02.png"
+            ],
+            "manufacturer": {
+              "name": "ПРОСТОКВАШИНО"
+            },
+            "stocks": [
+              {
+                "store_id": 10,
+                "eshop_availability": true,
+                "value": 78,
+                "text": "Заканчивается",
+                "prices": {
+                  "price": 149,
+                  "old_price": null,
+                  "discount": null,
+                  "is_promo": true
+                }
+              }
+            ]
+          },
+          {
+            "id": 649517460,
+            "article": 296058,
+            "name": "Молоко Простоквашино безлактозное ультрапастеризованное 2.5%, 970мл",
+            "url": "/products/970ml-moloko-upast-blakt-25-prostokvashino-bzmzh",
+            "slug": "970ml-moloko-upast-blakt-25-prostokvashino-bzmzh",
+            "images": [
+              "https://cdn.metro-cc.ru/ru/ru_pim_283129001001_01.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_283129001001_02.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_283129001001_03.png"
+            ],
+            "manufacturer": {
+              "name": "ПРОСТОКВАШИНО"
+            },
+            "stocks": [
+              {
+                "store_id": 10,
+                "eshop_availability": true,
+                "value": 92,
+                "text": "Заканчивается",
+                "prices": {
+                  "price": 159.01,
+                  "old_price": 169,
+                  "discount": 6,
+                  "is_promo": true
+                }
+              }
+            ]
+          },
+          {
+            "id": 270612689,
+            "article": 205742,
+            "name": "Молоко Простоквашино пастеризованное 3.2%, 1.4л",
+            "url": "/products/14l-moloko-32-prostokvashino-pasterizovannoe-bzmzh",
+            "slug": "14l-moloko-32-prostokvashino-pasterizovannoe-bzmzh",
+            "images": [
+              "https://cdn.metro-cc.ru/ru/ru_pim_157038001001_01.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_157038001001_02.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_157038001001_03.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_157038001001_04.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_157038001001_05.png"
+            ],
+            "manufacturer": {
+              "name": "ПРОСТОКВАШИНО"
+            },
+            "stocks": [
+              {
+                "store_id": 10,
+                "eshop_availability": true,
+                "value": 37,
+                "text": "Заканчивается",
+                "prices": {
+                  "price": 158,
+                  "old_price": null,
+                  "discount": null,
+                  "is_promo": false
+                }
+              }
+            ]
+          },
+          {
+            "id": 130209,
+            "article": 312080,
+            "name": "Молоко Простоквашино ультрапастеризованное 3.2%, 950мл",
+            "url": "/products/moloko-prostokvashino-ultrapasterizovannoye-3-2-950ml",
+            "slug": "moloko-prostokvashino-ultrapasterizovannoye-3-2-950ml",
+            "images": [
+              "https://cdn.metro-cc.ru/ru/ru_pim_322395001001_01.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_322395001001_02.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_322395001001_03.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_322395001001_04.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_322395001001_05.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_322395001001_07.png"
+            ],
+            "manufacturer": {
+              "name": "ПРОСТОКВАШИНО"
+            },
+            "stocks": [
+              {
+                "store_id": 10,
+                "eshop_availability": true,
+                "value": 71,
+                "text": "Заканчивается",
+                "prices": {
+                  "price": 158,
+                  "old_price": null,
+                  "discount": null,
+                  "is_promo": false
+                }
+              }
+            ]
+          },
+          {
+            "id": 170093,
+            "article": 241104,
+            "name": "Молоко Простоквашино отборное пастеризованное 3.4%-4%, 930мл",
+            "url": "/products/moloko-prostokvashino-otbornoye-pasterizovannoye-3-4-4-930ml",
+            "slug": "moloko-prostokvashino-otbornoye-pasterizovannoye-3-4-4-930ml",
+            "images": [
+              "https://cdn.metro-cc.ru/ru/ru_pim_185588001001_01.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_185588001001_02.png"
+            ],
+            "manufacturer": {
+              "name": "ПРОСТОКВАШИНО"
+            },
+            "stocks": [
+              {
+                "store_id": 10,
+                "eshop_availability": true,
+                "value": 104,
+                "text": "Заканчивается",
+                "prices": {
+                  "price": 109,
+                  "old_price": null,
+                  "discount": null,
+                  "is_promo": false
+                }
+              }
+            ]
+          },
+          {
+            "id": 178154,
+            "article": 241097,
+            "name": "Молоко Простоквашино пастеризованное 2.5%, 930мл",
+            "url": "/products/moloko-prostokvashino-pasterizovannoye-2-5-930ml",
+            "slug": "moloko-prostokvashino-pasterizovannoye-2-5-930ml",
+            "images": [
+              "https://cdn.metro-cc.ru/ru/ru_pim_186027001001_01.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_186027001001_02.png"
+            ],
+            "manufacturer": {
+              "name": "ПРОСТОКВАШИНО"
+            },
+            "stocks": [
+              {
+                "store_id": 10,
+                "eshop_availability": true,
+                "value": 73,
+                "text": "Заканчивается",
+                "prices": {
+                  "price": 103,
+                  "old_price": null,
+                  "discount": null,
+                  "is_promo": false
+                }
+              }
+            ]
+          },
+          {
+            "id": 772564469,
+            "article": 32350,
+            "name": "Молоко Простоквашино топленое 2.5%, 930мл",
+            "url": "/products/930ml-moloko-toplenoe-25-prostokvashino-gost-bzmzh",
+            "slug": "930ml-moloko-toplenoe-25-prostokvashino-gost-bzmzh",
+            "images": [
+              "https://cdn.metro-cc.ru/ru/ru_pim_333015001001_01.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_333015001001_02.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_333015001001_03.png"
+            ],
+            "manufacturer": {
+              "name": "ПРОСТОКВАШИНО"
+            },
+            "stocks": [
+              {
+                "store_id": 10,
+                "eshop_availability": true,
+                "value": 44,
+                "text": "Заканчивается",
+                "prices": {
+                  "price": 109,
+                  "old_price": null,
+                  "discount": null,
+                  "is_promo": false
+                }
+              }
+            ]
+          },
+          {
+            "id": 204682,
+            "article": 315563,
+            "name": "Молоко Простоквашино ультрапастеризованное 2.5%, 950мл",
+            "url": "/products/moloko-prostokvashino-ultrapasterizovannoye-2-5-950ml-315563",
+            "slug": "moloko-prostokvashino-ultrapasterizovannoye-2-5-950ml-315563",
+            "images": [
+              "https://cdn.metro-cc.ru/ru/ru_pim_329845001001_01.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_329845001001_02.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_329845001001_03.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_329845001001_04.png"
+            ],
+            "manufacturer": {
+              "name": "ПРОСТОКВАШИНО"
+            },
+            "stocks": [
+              {
+                "store_id": 10,
+                "eshop_availability": true,
+                "value": 99,
+                "text": "Заканчивается",
+                "prices": {
+                  "price": 146,
+                  "old_price": null,
+                  "discount": null,
+                  "is_promo": false
+                }
+              }
+            ]
+          },
+          {
+            "id": 238559,
+            "article": 506149,
+            "name": "Молоко Простоквашино пастеризованное 1.5%, 930мл",
+            "url": "/products/prostokvashino-15-pityevoe-930g",
+            "slug": "prostokvashino-15-pityevoe-930g",
+            "images": [
+              "https://cdn.metro-cc.ru/ru/ru_pim_252473001001_01.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_252473001001_02.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_252473001001_03.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_252473001001_04.png"
+            ],
+            "manufacturer": {
+              "name": "ПРОСТОКВАШИНО"
+            },
+            "stocks": [
+              {
+                "store_id": 10,
+                "eshop_availability": false,
+                "value": 30,
+                "text": "Заканчивается",
+                "prices": {
+                  "price": 86.9,
+                  "old_price": null,
+                  "discount": null,
+                  "is_promo": false
+                }
+              }
+            ]
+          },
+          {
+            "id": 387142,
+            "article": 312081,
+            "name": "Молоко Простоквашино ультрапастеризованное 3.2%, 950мл x 12 шт",
+            "url": "/products/prostokvashino-sterilizovannoe-32-950-ml",
+            "slug": "prostokvashino-sterilizovannoe-32-950-ml",
+            "images": [
+              "https://cdn.metro-cc.ru/ru/ru_pim_322395001002_00.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_322395001002_01.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_322395001002_02.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_322395001002_03.png",
+              "https://cdn.metro-cc.ru/ru/ru_pim_322395001002_04.png"
+            ],
+            "manufacturer": {
+              "name": "ПРОСТОКВАШИНО"
+            },
+            "stocks": [
+              {
+                "store_id": 10,
+                "eshop_availability": false,
+                "value": 2,
+                "text": "Заканчивается",
+                "prices": {
+                  "price": 1896,
+                  "old_price": null,
+                  "discount": null,
+                  "is_promo": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

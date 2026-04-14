@@ -1,0 +1,25 @@
+services:
+  zakupator:
+    build: .
+    image: zakupator:latest
+    container_name: zakupator
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Override the DB path to live on a named volume so it survives
+      # container rebuilds. The Dockerfile sets a sane default, but we
+      # pin it here to keep the path explicit and discoverable.
+      DATABASE_URL: sqlite+aiosqlite:////data/zakupator.db
+      LOG_LEVEL: INFO
+    volumes:
+      - zakupator-data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  zakupator-data:
+    name: zakupator-data

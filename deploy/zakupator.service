@@ -1,0 +1,43 @@
+#
+# Alternative to docker-compose for hosts that prefer a plain systemd unit.
+#
+# Install:
+#   1. Clone repo to /opt/zakupator
+#   2. Create venv: python3.12 -m venv /opt/zakupator/.venv
+#   3. Install:    /opt/zakupator/.venv/bin/pip install -e /opt/zakupator
+#   4. Create /opt/zakupator/.env with TELEGRAM_BOT_TOKEN=...
+#   5. Copy this file to /etc/systemd/system/zakupator.service
+#   6. systemctl daemon-reload && systemctl enable --now zakupator
+#
+# Logs: journalctl -u zakupator -f
+#
+[Unit]
+Description=Zakupator — RU grocery price comparison bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=zakupator
+Group=zakupator
+WorkingDirectory=/opt/zakupator
+EnvironmentFile=/opt/zakupator/.env
+# DATABASE_URL lives in .env; default from the Python code is
+# sqlite+aiosqlite:///./zakupator.db which will land in WorkingDirectory.
+ExecStart=/opt/zakupator/.venv/bin/python -m zakupator
+Restart=on-failure
+RestartSec=5s
+
+# Basic hardening. Can be tightened if you don't need network to new places.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/zakupator
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

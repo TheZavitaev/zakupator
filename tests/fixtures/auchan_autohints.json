@@ -1,0 +1,110 @@
+{
+  "data": {
+    "query": "молоко простоквашино",
+    "correction": "",
+    "sts": [],
+    "taps": [],
+    "categories": [
+      {
+        "id": 476,
+        "name": "Молоко, сливки",
+        "code": "moloko-slivki-molochnye-kokteyli-i-sguschennoe-moloko"
+      },
+      {
+        "id": 828,
+        "name": "Творог, творожные продукты",
+        "code": "tvorog-tvorozhnye-massy"
+      }
+    ],
+    "products": [
+      {
+        "id": 284848,
+        "available": true,
+        "name": "Молоко пастеризованное Простоквашино 2,5% БЗМЖ охлажденное, 930 мл",
+        "price": "94.99",
+        "oldPrice": null,
+        "isAdult": false,
+        "score": 251.56434631347656,
+        "link_url": "/product/moloko-prostokvashino-pasterizovannoe-2-5-930-ml/",
+        "image_url": "https://www.auchan.ru/f/c/insecure/w:620/plain/https://www.auchan.ru/files/original/37298850"
+      },
+      {
+        "id": 154622,
+        "available": true,
+        "name": "Молоко пастеризованное Простоквашино 1,5% БЗМЖ охлажденное, 930 мл",
+        "price": "88.99",
+        "oldPrice": "104.99",
+        "isAdult": false,
+        "score": 225.21046447753906,
+        "link_url": "/product/moloko-prostokvashino-pasterizovannoe-1-5-930-ml/",
+        "image_url": "https://www.auchan.ru/f/c/insecure/w:620/plain/https://www.auchan.ru/files/original/30592108"
+      },
+      {
+        "id": 19506,
+        "available": true,
+        "name": "Молоко пастеризованное питьевое Простоквашино нормализованное 3,2% БЗМЖ охлажденное, 1,4 л",
+        "price": "165.99",
+        "oldPrice": null,
+        "isAdult": false,
+        "score": 219.56173706054688,
+        "link_url": "/product/mol-past-3-2-1-4l-prostokvash/",
+        "image_url": "https://www.auchan.ru/f/c/insecure/w:620/plain/https://www.auchan.ru/files/original/36672291"
+      },
+      {
+        "id": 694741,
+        "available": true,
+        "name": "Молоко ультрапастеризованное Простоквашино безлактозное стерилизованное 1,5% БЗМЖ, 970 мл",
+        "price": "139.99",
+        "oldPrice": "159.99",
+        "isAdult": false,
+        "score": 104.80377197265625,
+        "link_url": "/product/moloko-prostokvashino-ultrapasterizovannoe-bezlaktoznoe-1-5-970-ml/",
+        "image_url": "https://www.auchan.ru/f/c/insecure/w:620/plain/https://www.auchan.ru/files/original/35555190"
+      },
+      {
+        "id": 213873,
+        "available": true,
+        "name": "Молоко пастеризованное Простоквашино 3,4%-4,5% БЗМЖ охлажденное, 930 мл",
+        "price": "112.99",
+        "oldPrice": null,
+        "isAdult": false,
+        "score": 104.74088287353516,
+        "link_url": "/product/moloko-prostokvashino-pasterizovannoe-otbornoe-3-4-4-5-930-ml/",
+        "image_url": "https://www.auchan.ru/f/c/insecure/w:620/plain/https://www.auchan.ru/files/original/37299897"
+      },
+      {
+        "id": 331542,
+        "available": true,
+        "name": "Молоко безлактозное Простоквашино стерилизованное 2,5 % БЗМЖ, 970 мл",
+        "price": "159.99",
+        "oldPrice": null,
+        "isAdult": false,
+        "score": 104.60285949707031,
+        "link_url": "/product/moloko-bez-lakt-2-5-970g-pro/",
+        "image_url": "https://www.auchan.ru/f/c/insecure/w:620/plain/https://www.auchan.ru/files/original/36633654"
+      },
+      {
+        "id": 487825,
+        "available": true,
+        "name": "Молоко питьевое Простоквашино топленое охлажденное 2,5% ГОСТ БЗМЖ, 930 мл",
+        "price": "113.99",
+        "oldPrice": "128.99",
+        "isAdult": false,
+        "score": 104.60285949707031,
+        "link_url": "/product/moloko-topl-2-5-930-g-bzmzh/",
+        "image_url": "https://www.auchan.ru/f/c/insecure/w:620/plain/https://www.auchan.ru/files/original/37234776"
+      },
+      {
+        "id": 818674,
+        "available": true,
+        "name": "Сырок глазированный Простоквашино с вареной сгущенкой 23% БЗМЖ, 40 г",
+        "price": "56.99",
+        "oldPrice": "64.99",
+        "isAdult": false,
+        "score": 52.76394271850586,
+        "link_url": "/product/pro-glsyr-molsgushchvr-23-40-bzmzh/",
+        "image_url": "https://www.auchan.ru/f/c/insecure/w:620/plain/https://www.auchan.ru/files/original/36672576"
+      }
+    ]
+  }
+}

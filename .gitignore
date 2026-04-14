@@ -1,0 +1,50 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Databases / runtime state
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+wheels/
+.eggs/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Test / type / lint caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.semgrep_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo
+.ipynb_checkpoints/
+
+# Captured fixtures scratch
+scripts/_scratch/
+
+# Claude Code local state
+.claude/

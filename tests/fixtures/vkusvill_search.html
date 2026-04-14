@@ -1,0 +1,86 @@
+<!doctype html>
+<!--
+  Handcrafted fixture for tests/test_adapter_vkusvill.py.
+  Structure matches what the live site serves — verified during recon with
+  selectolax selectors against the real page. Three product cards:
+    1. Regular price (no discount)
+    2. Regular price
+    3. Discounted product (old price + new price)
+  Plus some "header" noise to verify the parser doesn't pick up header links.
+
+  When VkusVill's live site is reachable, prefer capturing a real fixture via
+  `scripts/capture_fixtures.py`. This handcrafted version is a fallback so
+  tests don't depend on VkusVill being up.
+-->
+<html lang="ru">
+<head><meta charset="utf-8"><title>Купить молоко простоквашино с доставкой из ВкусВилла</title></head>
+<body>
+  <header class="HeaderBottom">
+    <nav class="HeaderLevelProdsSet">
+      <!-- Header carousel product link — must NOT be picked up as a search result. -->
+      <a href="/goods/header-promo-item-99999.html">Промо товар в шапке</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Молоко простоквашино — 3 результата поиска</h1>
+
+    <div class="ProductCards">
+      <div class="ProductCard js-product-card">
+        <div class="ProductCard__content">
+          <a class="ProductCard__link" href="/goods/moloko-2-5-v-butylke-900-ml-36296.html">
+            Молоко 2,5% в бутылке, 900 мл
+          </a>
+          <div class="ProductCard__weight">900 мл</div>
+          <div class="ProductCard__price">
+            <span class="Price subtitle _desktop-md">
+              <span class="js-datalayer-catalog-list-price">100</span>
+              <span class="js-datalayer-catalog-list-price-old"></span>
+              <span class="Currency">
+                <span class="CurrencyIcon"></span>
+              </span>
+            </span>
+          </div>
+          <img class="ProductCard__img" src="/upload/images/moloko-2-5.webp" alt="Молоко 2,5%">
+        </div>
+      </div>
+
+      <div class="ProductCard js-product-card">
+        <div class="ProductCard__content">
+          <a class="ProductCard__link" href="/goods/moloko-3-2-v-butylke-900-ml-17525.html">
+            Молоко 3,2% в бутылке, 900 мл
+          </a>
+          <div class="ProductCard__weight">900 мл</div>
+          <div class="ProductCard__price">
+            <span class="Price subtitle _desktop-md">
+              <span class="js-datalayer-catalog-list-price">104</span>
+              <span class="js-datalayer-catalog-list-price-old"></span>
+            </span>
+          </div>
+          <img class="ProductCard__img" src="https://img.vkusvill.ru/cdn/moloko-3-2.webp" alt="Молоко 3,2%">
+        </div>
+      </div>
+
+      <div class="ProductCard js-product-card">
+        <div class="ProductCard__content">
+          <a class="ProductCard__link" href="/goods/maslo-slivochnoe-82-5-200-g-16306.html">
+            Масло сливочное 82,5%, 200 г
+          </a>
+          <div class="ProductCard__weight">200 г</div>
+          <div class="ProductCard__price">
+            <span class="Price subtitle _desktop-md">
+              <span class="js-datalayer-catalog-list-price">282</span>
+              <span class="js-datalayer-catalog-list-price-old">330</span>
+            </span>
+          </div>
+          <img class="ProductCard__img" data-src="/upload/images/maslo.webp" alt="Масло">
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <a href="/goods/footer-garbage-link-12345.html">Мусорная ссылка в футере</a>
+  </footer>
+</body>
+</html>
