@@ -28,6 +28,15 @@ from aiogram.utils.markdown import hbold, hlink
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from zakupator import cart_repo
+from zakupator.callbacks import (
+    AddToCart,
+    ChangeQty,
+    ClearCart,
+    CopyCart,
+    HistoryPick,
+    RemoveItem,
+    pack_history_pick,
+)
 from zakupator.config import Settings
 from zakupator.constants import CART_TITLE_TRUNCATE, HISTORY_LIMIT
 from zakupator.db import get_session_factory
@@ -267,7 +276,7 @@ def _build_add_keyboard(token: str, results: list[SearchResult]) -> InlineKeyboa
             row.append(
                 InlineKeyboardButton(
                     text=label,
-                    callback_data=f"a:{token}:{flat_idx}",
+                    callback_data=AddToCart(token=token, idx=flat_idx).pack(),
                 )
             )
             flat_idx += 1
@@ -278,21 +287,18 @@ def _build_add_keyboard(token: str, results: list[SearchResult]) -> InlineKeyboa
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-@router.callback_query(lambda c: c.data and c.data.startswith("a:"))
+@router.callback_query(AddToCart.filter())
 async def on_add_to_cart(
     callback: CallbackQuery,
+    callback_data: AddToCart,
     cache: SearchCache,
     session: AsyncSession,
 ) -> None:
-    if not callback.data or callback.from_user is None:
+    if callback.from_user is None:
         await callback.answer()
         return
-    try:
-        _, token, idx_str = callback.data.split(":", 2)
-        idx = int(idx_str)
-    except ValueError:
-        await callback.answer("Битый callback", show_alert=False)
-        return
+    token = callback_data.token
+    idx = callback_data.idx
 
     entry = cache.get(token)
     if entry is None:
@@ -471,7 +477,7 @@ def _build_compare_keyboard(token: str, results: list[SearchResult]) -> InlineKe
         buttons.append(
             InlineKeyboardButton(
                 text=label,
-                callback_data=f"a:{token}:{flat_idx}",
+                callback_data=AddToCart(token=token, idx=flat_idx).pack(),
             )
         )
         flat_idx += 1
@@ -624,10 +630,22 @@ def _format_cart(
             qty_label = f"×{item.quantity}"
             rows.append(
                 [
-                    InlineKeyboardButton(text="➖", callback_data=f"q:-:{item.id}"),
-                    InlineKeyboardButton(text=qty_label, callback_data=f"q:?:{item.id}"),
-                    InlineKeyboardButton(text="➕", callback_data=f"q:+:{item.id}"),
-                    InlineKeyboardButton(text="🗑", callback_data=f"r:{item.id}"),
+                    InlineKeyboardButton(
+                        text="➖",
+                        callback_data=ChangeQty(op="-", item_id=item.id).pack(),
+                    ),
+                    InlineKeyboardButton(
+                        text=qty_label,
+                        callback_data=ChangeQty(op="?", item_id=item.id).pack(),
+                    ),
+                    InlineKeyboardButton(
+                        text="➕",
+                        callback_data=ChangeQty(op="+", item_id=item.id).pack(),
+                    ),
+                    InlineKeyboardButton(
+                        text="🗑",
+                        callback_data=RemoveItem(item_id=item.id).pack(),
+                    ),
                 ]
             )
         lines.append(f"  <b>Итого {label}: {_format_price(group.subtotal)} ₽</b>")
@@ -649,30 +667,36 @@ def _format_cart(
     # Bottom action row.
     rows.append(
         [
-            InlineKeyboardButton(text="📋 Скопировать", callback_data="cp:list"),
-            InlineKeyboardButton(text="🧹 Очистить", callback_data="c:ask"),
+            InlineKeyboardButton(
+                text="📋 Скопировать",
+                callback_data=CopyCart(action="list").pack(),
+            ),
+            InlineKeyboardButton(
+                text="🧹 Очистить",
+                callback_data=ClearCart(action="ask").pack(),
+            ),
         ]
     )
     return "\n".join(lines).strip(), InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-@router.callback_query(lambda c: c.data and c.data.startswith("q:"))
-async def on_change_quantity(callback: CallbackQuery, session: AsyncSession) -> None:
+@router.callback_query(ChangeQty.filter())
+async def on_change_quantity(
+    callback: CallbackQuery,
+    callback_data: ChangeQty,
+    session: AsyncSession,
+) -> None:
     """Handle ➖ / ➕ / middle label clicks on cart item rows.
 
-    The middle label (q:?:id) is informational — we just surface the
+    The middle label (op == "?") is informational — we just surface the
     current quantity in a toast so the user has feedback if they tapped
     it by mistake.
     """
-    if not callback.data or callback.from_user is None:
+    if callback.from_user is None:
         await callback.answer()
         return
-    try:
-        _, op, item_id_str = callback.data.split(":", 2)
-        item_id = int(item_id_str)
-    except ValueError:
-        await callback.answer("Битый callback", show_alert=False)
-        return
+    op = callback_data.op
+    item_id = callback_data.item_id
 
     user = await cart_repo.get_or_create_user(
         session, callback.from_user.id, callback.from_user.username
@@ -699,16 +723,16 @@ async def on_change_quantity(callback: CallbackQuery, session: AsyncSession) -> 
     await _rerender_cart(callback, session, user.id)
 
 
-@router.callback_query(lambda c: c.data and c.data.startswith("r:"))
-async def on_remove_item(callback: CallbackQuery, session: AsyncSession) -> None:
-    if not callback.data or callback.from_user is None:
+@router.callback_query(RemoveItem.filter())
+async def on_remove_item(
+    callback: CallbackQuery,
+    callback_data: RemoveItem,
+    session: AsyncSession,
+) -> None:
+    if callback.from_user is None:
         await callback.answer()
         return
-    try:
-        item_id = int(callback.data.split(":", 1)[1])
-    except (IndexError, ValueError):
-        await callback.answer("Битый callback", show_alert=False)
-        return
+    item_id = callback_data.item_id
 
     user = await cart_repo.get_or_create_user(
         session, callback.from_user.id, callback.from_user.username
@@ -749,8 +773,12 @@ async def _rerender_cart(callback: CallbackQuery, session: AsyncSession, user_id
     )
 
 
-@router.callback_query(lambda c: c.data == "cp:list")
-async def on_copy_cart(callback: CallbackQuery, session: AsyncSession) -> None:
+@router.callback_query(CopyCart.filter())
+async def on_copy_cart(
+    callback: CallbackQuery,
+    callback_data: CopyCart,
+    session: AsyncSession,
+) -> None:
     """Send a plain-text dump of the cart in a separate message.
 
     Separate message (not an edit) so the user can easily copy from it —
@@ -830,8 +858,14 @@ async def on_clear(message: Message, session: AsyncSession) -> None:
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="Да, очистить", callback_data="c:yes"),
-                InlineKeyboardButton(text="Отмена", callback_data="c:no"),
+                InlineKeyboardButton(
+                    text="Да, очистить",
+                    callback_data=ClearCart(action="yes").pack(),
+                ),
+                InlineKeyboardButton(
+                    text="Отмена",
+                    callback_data=ClearCart(action="no").pack(),
+                ),
             ]
         ]
     )
@@ -841,12 +875,16 @@ async def on_clear(message: Message, session: AsyncSession) -> None:
     )
 
 
-@router.callback_query(lambda c: c.data and c.data.startswith("c:"))
-async def on_clear_confirm(callback: CallbackQuery, session: AsyncSession) -> None:
-    if not callback.data or callback.from_user is None:
+@router.callback_query(ClearCart.filter())
+async def on_clear_confirm(
+    callback: CallbackQuery,
+    callback_data: ClearCart,
+    session: AsyncSession,
+) -> None:
+    if callback.from_user is None:
         await callback.answer()
         return
-    action = callback.data.split(":", 1)[1]
+    action = callback_data.action
     raw_msg = callback.message
     # Narrow out InaccessibleMessage so edit_text/answer are callable.
     msg = raw_msg if isinstance(raw_msg, Message) else None
@@ -863,8 +901,14 @@ async def on_clear_confirm(callback: CallbackQuery, session: AsyncSession) -> No
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
-                    InlineKeyboardButton(text="Да, очистить", callback_data="c:yes"),
-                    InlineKeyboardButton(text="Отмена", callback_data="c:no"),
+                    InlineKeyboardButton(
+                        text="Да, очистить",
+                        callback_data=ClearCart(action="yes").pack(),
+                    ),
+                    InlineKeyboardButton(
+                        text="Отмена",
+                        callback_data=ClearCart(action="no").pack(),
+                    ),
                 ]
             ]
         )
@@ -911,11 +955,18 @@ async def on_history(message: Message, session: AsyncSession) -> None:
         return
 
     # Show queries as buttons that re-run the search. We encode the query
-    # directly in the callback_data (truncated to fit the 64-byte limit).
+    # directly in the callback_data — pack_history_pick trims byte-wise
+    # to fit the 64-byte limit even for Cyrillic text.
     rows: list[list[InlineKeyboardButton]] = []
     for q in queries:
-        cb = f"h:{q}"[:63]
-        rows.append([InlineKeyboardButton(text=f"🔎 {_truncate(q, 50)}", callback_data=cb)])
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=f"🔎 {_truncate(q, 50)}",
+                    callback_data=pack_history_pick(q),
+                )
+            ]
+        )
     await message.answer(
         f"🕘 {hbold('Последние запросы')}",
         parse_mode=ParseMode.HTML,
@@ -923,18 +974,19 @@ async def on_history(message: Message, session: AsyncSession) -> None:
     )
 
 
-@router.callback_query(lambda c: c.data and c.data.startswith("h:"))
+@router.callback_query(HistoryPick.filter())
 async def on_history_pick(
     callback: CallbackQuery,
+    callback_data: HistoryPick,
     engine: SearchEngine,
     cache: SearchCache,
     default_address: Address,
     session: AsyncSession,
 ) -> None:
-    if not callback.data or callback.from_user is None or callback.message is None:
+    if callback.from_user is None or callback.message is None:
         await callback.answer()
         return
-    query = callback.data[2:]
+    query = callback_data.query
     await callback.answer(f"🔎 {query}")
 
     user = await cart_repo.get_or_create_user(
