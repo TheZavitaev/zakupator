@@ -15,8 +15,8 @@ pitch see [README.md](../README.md).
                         │ long-polling (aiogram 3)
                         ▼
 ┌────────────────────────────────────────────────────────┐
-│                      bot.py                            │
-│  handlers · formatters · inline keyboards · humanizer  │
+│                     bot/                               │
+│  handlers.py · presentation.py · callbacks.py          │
 └─────┬────────────────────────────────────────┬─────────┘
       │                                        │
       │ search queries                         │ cart / history writes
@@ -238,3 +238,245 @@ ProtectSystem=strict, PrivateTmp, ProtectKernelTunables, etc).
 
 Both are described in [README.md](../README.md) with copy-paste
 install commands.
+
+---
+
+## 8. Sequence diagrams
+
+### 8.1 `/search молоко` — full flow
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant TG as Telegram
+    participant H as bot/handlers
+    participant MW as DbSessionMiddleware
+    participant CR as cart_repo
+    participant SE as SearchEngine
+    participant RC as ResponseCache
+    participant A1 as VkusVillAdapter
+    participant A2 as AuchanAdapter
+    participant A3 as MetroAdapter
+    participant SC as SearchCache
+    participant P as bot/presentation
+
+    U->>TG: "молоко"
+    TG->>H: on_plain_text(message)
+    H->>MW: (middleware injects session)
+    MW-->>H: session
+
+    H->>CR: get_or_create_user(session, tg_id)
+    CR-->>H: user
+    H->>CR: record_search(session, user.id, "молоко")
+
+    H->>TG: answer("🔎 Ищу «молоко»…")
+    TG-->>H: progress message
+
+    H->>SE: search("молоко", address, limit=3, timeout=12)
+
+    par Check cache for each adapter
+        SE->>RC: get(VKUSVILL, "молоко", 3)
+        RC-->>SE: None (miss)
+        SE->>RC: get(AUCHAN, "молоко", 3)
+        RC-->>SE: None (miss)
+        SE->>RC: get(METRO, "молоко", 3)
+        RC-->>SE: None (miss)
+    end
+
+    par Fan-out HTTP (asyncio.wait, timeout=12s)
+        SE->>A1: search("молоко", address, limit=3)
+        A1-->>SE: SearchResult(offers=[...])
+        SE->>A2: search("молоко", address, limit=3)
+        A2-->>SE: SearchResult(offers=[...])
+        SE->>A3: search("молоко", address, limit=3)
+        A3-->>SE: SearchResult(offers=[...])
+    end
+
+    SE->>RC: put(service, "молоко", 3, result) x3
+    SE-->>H: [SearchResult, SearchResult, SearchResult]
+
+    H->>SC: put("молоко", results)
+    SC-->>H: CachedSearch(token="abc123", flat_offers=(...))
+
+    H->>P: _format_search_results("молоко", results)
+    P-->>H: HTML text
+    H->>P: _build_add_keyboard("abc123", results)
+    P-->>H: InlineKeyboardMarkup
+
+    H->>TG: edit_text(text, keyboard)
+    TG-->>U: formatted results + price buttons
+```
+
+### 8.2 Add to cart (button click)
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant TG as Telegram
+    participant H as bot/handlers
+    participant SC as SearchCache
+    participant CR as cart_repo
+
+    U->>TG: tap "🥬 89 ₽"
+    TG->>H: on_add_to_cart(callback, AddToCart(token="abc123", idx=0))
+
+    H->>SC: get("abc123")
+    SC-->>H: CachedSearch(flat_offers=(offer0, offer1, ...))
+
+    Note over H: offer = flat_offers[0]
+
+    H->>CR: get_or_create_user(session, tg_id)
+    CR-->>H: user
+    H->>CR: add_cart_item(session, user.id, offer)
+    CR-->>H: CartItem
+
+    H->>TG: callback.answer("✓ В корзину: Молоко… — 89 ₽")
+    TG-->>U: toast notification
+```
+
+### 8.3 `/compare молоко простоквашино 930мл`
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant TG as Telegram
+    participant H as bot/handlers
+    participant SE as SearchEngine
+    participant P as bot/presentation
+    participant M as matching
+    participant SC as SearchCache
+
+    U->>TG: /compare молоко простоквашино 930мл
+    TG->>H: on_compare(message, command)
+    H->>TG: answer("⚖️ Сравниваю…")
+
+    H->>SE: search(query, address, limit=5)
+    SE-->>H: results (3 SearchResults)
+
+    H->>P: _pick_reference_and_matches(results)
+    P->>M: find_matches(reference, results)
+
+    Note over M: For each candidate in other services:<br/>1. name_similarity(ref, cand) >= 80?<br/>2. extract_quantity → same unit_class?<br/>3. values within 12% tolerance?
+
+    M-->>P: [MatchedOffer(AUCHAN, ...), MatchedOffer(METRO, ...)]
+    P-->>H: (reference, matches)
+
+    alt Matches found
+        H->>P: _synthesize_matched_results(ref, matches, results)
+        P-->>H: matched_results
+        H->>SC: put(query, matched_results)
+        H->>P: _format_matched_compare(query, ref, matches)
+        P-->>H: "🏆 Дешевле всего: 🛒 Ашан — 88 ₽"
+    else No matches
+        H->>P: _reduce_to_cheapest(results)
+        P-->>H: best_results
+        H->>SC: put(query, best_results)
+        H->>P: _format_compare(query, results)
+        P-->>H: fallback view + "⚠️ товары могут отличаться"
+    end
+
+    H->>TG: edit_text(text, keyboard)
+    TG-->>U: comparison with winner + add buttons
+```
+
+### 8.4 `/cart` → quantity change → re-render
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant TG as Telegram
+    participant H as bot/handlers
+    participant CR as cart_repo
+    participant P as bot/presentation
+
+    U->>TG: /cart
+    TG->>H: on_cart(message)
+    H->>CR: list_cart(session, user.id)
+    CR-->>H: [CartGroup(VKUSVILL, items), CartGroup(AUCHAN, items)]
+
+    H->>P: _format_cart(groups)
+    P-->>H: (HTML text, InlineKeyboardMarkup)
+    H->>TG: answer(text, keyboard)
+    TG-->>U: cart with ➖/➕/🗑 buttons
+
+    U->>TG: tap "➕"
+    TG->>H: on_change_quantity(callback, ChangeQty(op="+", item_id=42))
+    H->>CR: change_quantity(session, user.id, 42, +1)
+    CR-->>H: CartItem(quantity=3)
+    H->>TG: callback.answer("×3")
+
+    Note over H: _rerender_cart
+
+    H->>CR: list_cart(session, user.id)
+    CR-->>H: updated groups
+    H->>P: _format_cart(groups)
+    P-->>H: (new text, new keyboard)
+    H->>TG: edit_text(new text, new keyboard)
+    TG-->>U: updated cart in place
+```
+
+### 8.5 `/clear` confirmation flow
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant TG as Telegram
+    participant H as bot/handlers
+    participant CR as cart_repo
+
+    U->>TG: /clear
+    TG->>H: on_clear(message)
+    H->>CR: list_cart(session, user.id)
+    CR-->>H: groups (non-empty)
+
+    H->>TG: answer("Удалить все 5 позиций?", [Да / Отмена])
+    TG-->>U: confirmation prompt
+
+    alt User confirms
+        U->>TG: tap "Да, очистить"
+        TG->>H: on_clear_confirm(callback, ClearCart(action="yes"))
+        H->>CR: clear_cart(session, user.id)
+        CR-->>H: 5
+        H->>TG: edit_text("Корзина очищена (5 позиций удалено).")
+        H->>TG: callback.answer("✓ Очищено")
+        TG-->>U: confirmation
+    else User cancels
+        U->>TG: tap "Отмена"
+        TG->>H: on_clear_confirm(callback, ClearCart(action="no"))
+        H->>TG: edit_text("Отменено.")
+        TG-->>U: cancellation
+    end
+```
+
+### 8.6 Adapter internals: retry flow
+
+```mermaid
+sequenceDiagram
+    participant A as Adapter.search()
+    participant N as net.fetch_with_retry
+    participant H as httpx.AsyncClient
+
+    A->>N: fetch_with_retry(client, "GET", url, params=...)
+
+    loop attempt 1..3 (RetryPolicy)
+        N->>H: client.request("GET", url, ...)
+
+        alt Transport error (timeout, connection reset)
+            H-->>N: raises TimeoutException / ConnectError
+            Note over N: log, sleep(backoff[attempt]), retry
+        else HTTP 5xx / 429
+            H-->>N: Response(status=503)
+            Note over N: retryable status → sleep, retry
+        else HTTP 4xx (not 429)
+            H-->>N: Response(status=404)
+            N-->>A: return Response (caller decides)
+        else HTTP 2xx
+            H-->>N: Response(status=200)
+            N-->>A: return Response
+        end
+    end
+
+    Note over N: All attempts exhausted
+    N-->>A: raise FetchError(reason, status, detail)
+    A-->>A: catch → SearchResult(error=e.tag)
+```
